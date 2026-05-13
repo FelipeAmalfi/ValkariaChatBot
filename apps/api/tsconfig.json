@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "paths": {
+      "@core/*": ["./src/core/*"],
+      "@infrastructure/*": ["./src/infrastructure/*"],
+      "@interface/*": ["./src/interface/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@composition/*": ["./src/composition/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests"]
+}

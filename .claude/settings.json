@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__context7__resolve-library-id",
+      "Read(//c/Users/felip/.claude/**)",
+      "Bash(pnpm install *)",
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)",
+      "PowerShell(npm list -g --depth=0 2>&1)",
+      "PowerShell(npm install -g pnpm@9.15.0 2>&1)",
+      "PowerShell($env:PATH = \"$env:APPDATA\\\\npm;$env:PATH\"; pnpm --version)",
+      "PowerShell($env:PATH = \"$env:APPDATA\\\\npm;$env:PATH\"; cd \"c:\\\\Users\\\\felip\\\\OneDrive\\\\Documentos\\\\projects\\\\ValkariaChatBot\"; pnpm install 2>&1)",
+      "PowerShell($env:PATH = \"$env:APPDATA\\\\npm;$env:PATH\"; pnpm view @langchain/langgraph version; pnpm view @langchain/core version; pnpm view @langchain/community version)",
+      "PowerShell($env:PATH = \"$env:APPDATA\\\\npm;$env:PATH\"; pnpm view mercurius version; pnpm view fastify version; pnpm view @fastify/cors version; pnpm view @fastify/helmet version; pnpm view @fastify/rate-limit version)",
+      "PowerShell($env:PATH = \"$env:APPDATA\\\\npm;$env:PATH\"; cd \"c:\\\\Users\\\\felip\\\\OneDrive\\\\Documentos\\\\projects\\\\ValkariaChatBot\"; pnpm --filter @valkaria/shared build 2>&1)",
+      "PowerShell($env:PATH = \"$env:APPDATA\\\\npm;$env:PATH\"; cd \"c:\\\\Users\\\\felip\\\\OneDrive\\\\Documentos\\\\projects\\\\ValkariaChatBot\"; pnpm --filter @valkaria/api typecheck 2>&1)",
+      "PowerShell($env:PATH = \"$env:APPDATA\\\\npm;$env:PATH\"; cd \"c:\\\\Users\\\\felip\\\\OneDrive\\\\Documentos\\\\projects\\\\ValkariaChatBot\"; pnpm --filter @valkaria/web typecheck 2>&1)",
+      "PowerShell(Get-Command docker -ErrorAction SilentlyContinue)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\resources\\\\bin\\\\docker.exe\" --version 2>&1)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Docker Desktop\\\\resources\\\\docker.exe\" --version 2>&1)"
+    ]
+  }
+}

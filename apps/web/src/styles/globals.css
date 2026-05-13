@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 13 10 26;
+    --foreground: 245 240 255;
+    --muted: 28 22 56;
+    --accent: 124 50 245;
+    --border: 75 17 158;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-midnight-900 text-valkaria-50 antialiased;
+    font-family: 'Georgia', serif;
+  }
+
+  h1, h2, h3 {
+    @apply font-serif;
+  }
+
+  ::selection {
+    @apply bg-valkaria-600 text-white;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-midnight-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-valkaria-700 rounded-full;
+  }
+}
