@@ -25,6 +25,30 @@ const typeDefs = `
     intent: String
   }
 
+  enum Role {
+    PLAYER
+    DM
+  }
+
+  type PlayerProfile {
+    id: ID!
+    name: String!
+    class: String!
+    race: String!
+    createdAt: String!
+  }
+
+  type ChallengeResponse {
+    challengeId: String!
+    question: String!
+    playerName: String!
+  }
+
+  type AuthToken {
+    token: String!
+    playerName: String
+  }
+
   type Query {
     health: HealthStatus!
     character(id: ID!): Character
@@ -33,6 +57,17 @@ const typeDefs = `
 
   type Mutation {
     chat(message: String!, threadId: String): ChatResponse!
+    registerPlayer(
+      name: String!
+      class: String!
+      race: String!
+      background: String!
+      personality: String!
+      interests: String!
+    ): PlayerProfile!
+    initiatePlayerAuth(playerName: String!): ChallengeResponse!
+    verifyPlayerAuth(challengeId: String!, answer: String!): AuthToken!
+    authenticateDM(password: String!): AuthToken!
   }
 `
 
@@ -70,6 +105,44 @@ export function buildGraphQLSchema(container: Container) {
           threadId,
           intent: result.intent,
         }
+      },
+
+      registerPlayer: async (
+        _: unknown,
+        args: {
+          name: string
+          class: string
+          race: string
+          background: string
+          personality: string
+          interests: string
+        },
+      ) => {
+        const { player } = await container.registerPlayerUseCase.execute(args)
+        return {
+          id: player.id,
+          name: player.name,
+          class: player.class,
+          race: player.race,
+          createdAt: player.createdAt,
+        }
+      },
+
+      initiatePlayerAuth: async (_: unknown, args: { playerName: string }) => {
+        return container.initiatePlayerAuthUseCase.execute(args.playerName)
+      },
+
+      verifyPlayerAuth: async (
+        _: unknown,
+        args: { challengeId: string; answer: string },
+      ) => {
+        const result = await container.validatePlayerAuthUseCase.execute(args)
+        return { token: result.token, playerName: result.playerName }
+      },
+
+      authenticateDM: async (_: unknown, args: { password: string }) => {
+        const { token } = await container.authenticateDMUseCase.execute(args.password)
+        return { token, playerName: null }
       },
     },
   }

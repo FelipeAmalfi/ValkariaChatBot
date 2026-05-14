@@ -7,6 +7,7 @@ import type { Env } from '../../shared/config/env.js'
 import type { Container } from '../../composition/container.js'
 import { registerErrorHandler } from './errorHandler.js'
 import { ChatController } from './controllers/ChatController.js'
+import { AuthController } from './controllers/AuthController.js'
 import { buildGraphQLSchema } from '../graphql/schema.js'
 
 export async function createServer(env: Env, container: Container) {
@@ -55,6 +56,15 @@ export async function createServer(env: Env, container: Container) {
 
   // HTTP controllers
   await app.register(ChatController({ graph: container.graph }), { prefix: '/api/v1' })
+  await app.register(
+    AuthController({
+      registerPlayerUseCase: container.registerPlayerUseCase,
+      initiatePlayerAuthUseCase: container.initiatePlayerAuthUseCase,
+      validatePlayerAuthUseCase: container.validatePlayerAuthUseCase,
+      authenticateDMUseCase: container.authenticateDMUseCase,
+    }),
+    { prefix: '/api/v1/auth' },
+  )
 
   return app
 }

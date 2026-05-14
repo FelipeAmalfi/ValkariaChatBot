@@ -17,7 +17,11 @@
       "PowerShell($env:PATH = \"$env:APPDATA\\\\npm;$env:PATH\"; cd \"c:\\\\Users\\\\felip\\\\OneDrive\\\\Documentos\\\\projects\\\\ValkariaChatBot\"; pnpm --filter @valkaria/web typecheck 2>&1)",
       "PowerShell(Get-Command docker -ErrorAction SilentlyContinue)",
       "PowerShell(& \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\resources\\\\bin\\\\docker.exe\" --version 2>&1)",
-      "PowerShell(& \"C:\\\\Program Files\\\\Docker Desktop\\\\resources\\\\docker.exe\" --version 2>&1)"
+      "PowerShell(& \"C:\\\\Program Files\\\\Docker Desktop\\\\resources\\\\docker.exe\" --version 2>&1)",
+      "Bash(pnpm --filter @valkaria/api add jsonwebtoken)",
+      "Bash(pnpm --filter @valkaria/api add -D @types/jsonwebtoken)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm typecheck *)"
     ]
   }
 }

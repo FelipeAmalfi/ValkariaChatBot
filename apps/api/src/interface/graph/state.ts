@@ -1,5 +1,6 @@
 import { Annotation } from '@langchain/langgraph'
 import type { Intent, Slots } from '../../shared/prompts/v1/identifyIntent.js'
+import type { Role } from '../../core/domain/value-objects/Role.js'
 
 // Intent enum must stay in sync with IntentSchema in identifyIntent.ts
 export { type Intent }
@@ -39,6 +40,16 @@ export const ValkáriaStateAnnotation = Annotation.Root({
     default: () => undefined,
   }),
   actionData: Annotation<unknown>({
+    reducer: (_, next) => next,
+    default: () => undefined,
+  }),
+
+  // Auth context — populated from JWT before invoking the graph
+  playerRole: Annotation<Role | undefined>({
+    reducer: (_, next) => next,
+    default: () => undefined,
+  }),
+  playerId: Annotation<string | undefined>({
     reducer: (_, next) => next,
     default: () => undefined,
   }),

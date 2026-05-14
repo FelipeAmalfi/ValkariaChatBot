@@ -104,3 +104,26 @@ CREATE TRIGGER update_locations_updated_at
 CREATE TRIGGER update_conversations_updated_at
   BEFORE UPDATE ON conversations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================
+-- Players (authenticated player characters — sem senha)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS players (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name        VARCHAR(255) NOT NULL UNIQUE,
+  class       VARCHAR(100) NOT NULL,
+  race        VARCHAR(100) NOT NULL,
+  background  TEXT NOT NULL,
+  personality TEXT NOT NULL,
+  interests   TEXT NOT NULL,
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_players_name_lower ON players (LOWER(name));
+CREATE INDEX IF NOT EXISTS idx_players_class ON players (class);
+CREATE INDEX IF NOT EXISTS idx_players_race ON players (race);
+
+CREATE TRIGGER update_players_updated_at
+  BEFORE UPDATE ON players
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

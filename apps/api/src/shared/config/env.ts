@@ -25,9 +25,13 @@ const EnvSchema = z.object({
   AI_EMBEDDING_DIMENSIONS: z.coerce.number().default(1536),
 
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
+  JWT_EXPIRES_IN: z.string().default('24h'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
   RATE_LIMIT_MAX: z.coerce.number().default(100),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60_000),
+
+  DM_PASSWORD: z.string().min(8, 'DM_PASSWORD must be at least 8 characters'),
+  SEMANTIC_AUTH_THRESHOLD: z.coerce.number().min(0).max(1).default(0.6),
 })
 
 export type Env = z.infer<typeof EnvSchema>
