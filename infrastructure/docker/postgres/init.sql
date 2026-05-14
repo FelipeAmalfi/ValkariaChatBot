@@ -127,3 +127,128 @@ CREATE INDEX IF NOT EXISTS idx_players_race ON players (race);
 CREATE TRIGGER update_players_updated_at
   BEFORE UPDATE ON players
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================
+-- Unique constraints required for ingestion upserts
+-- ============================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'uq_characters_name' AND conrelid = 'characters'::regclass
+  ) THEN
+    ALTER TABLE characters ADD CONSTRAINT uq_characters_name UNIQUE (name);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'uq_locations_name' AND conrelid = 'locations'::regclass
+  ) THEN
+    ALTER TABLE locations ADD CONSTRAINT uq_locations_name UNIQUE (name);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'uq_langchain_pg_embedding_custom_id'
+      AND conrelid = 'langchain_pg_embedding'::regclass
+  ) THEN
+    ALTER TABLE langchain_pg_embedding ADD CONSTRAINT uq_langchain_pg_embedding_custom_id UNIQUE (custom_id);
+  END IF;
+END
+$$;
+
+-- ============================================================
+-- Extend locations with CSV-sourced fields
+-- ============================================================
+ALTER TABLE locations ADD COLUMN IF NOT EXISTS short_description TEXT;
+ALTER TABLE locations ADD COLUMN IF NOT EXISTS full_description TEXT;
+ALTER TABLE locations ADD COLUMN IF NOT EXISTS services TEXT;
+ALTER TABLE locations ADD COLUMN IF NOT EXISTS honors TEXT;
+ALTER TABLE locations ADD COLUMN IF NOT EXISTS npc_names TEXT[];  -- array of NPC names
+
+-- ============================================================
+-- Extend characters (NPCs) with CSV-sourced fields
+-- ============================================================
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS likes TEXT[];
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS dislikes TEXT[];
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS benefits_cordial TEXT;
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS benefits_loyal TEXT;
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS benefits_intimate TEXT;
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS last_demand TEXT;
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS location_name VARCHAR(255);  -- string reference além de FK
+
+-- ============================================================
+-- NPC Affinity — tracks affinity level between player and NPC
+-- ============================================================
+CREATE TABLE IF NOT EXISTS npc_affinity (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  player_id         UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+  npc_name          VARCHAR(255) NOT NULL,
+  level             VARCHAR(50) NOT NULL DEFAULT 'none',  -- none, cordial, loyal, intimate
+  score             INTEGER NOT NULL DEFAULT 0,           -- 0-100
+  interaction_count INTEGER NOT NULL DEFAULT 0,
+  last_interaction  TIMESTAMPTZ,
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(player_id, npc_name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_npc_affinity_player_id ON npc_affinity(player_id);
+CREATE INDEX IF NOT EXISTS idx_npc_affinity_npc_name  ON npc_affinity(npc_name);
+CREATE INDEX IF NOT EXISTS idx_npc_affinity_level      ON npc_affinity(level);
+
+CREATE TRIGGER update_npc_affinity_updated_at
+  BEFORE UPDATE ON npc_affinity
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================
+-- Interaction History — player-NPC interaction log
+-- ============================================================
+CREATE TABLE IF NOT EXISTS interaction_history (
+  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  player_id       UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+  npc_name        VARCHAR(255),
+  location_name   VARCHAR(255),
+  intent          VARCHAR(100) NOT NULL,
+  message_summary TEXT,
+  sentiment       VARCHAR(50),   -- positive, neutral, negative
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_interaction_history_player_id  ON interaction_history(player_id);
+CREATE INDEX IF NOT EXISTS idx_interaction_history_npc_name   ON interaction_history(npc_name);
+CREATE INDEX IF NOT EXISTS idx_interaction_history_created_at ON interaction_history(created_at);
+
+-- ============================================================
+-- Player Embeddings — evolving semantic profile per player
+-- ============================================================
+CREATE TABLE IF NOT EXISTS player_embeddings (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  player_id         UUID UNIQUE NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+  embedding         vector(1536) NOT NULL,
+  drift_alpha       FLOAT NOT NULL DEFAULT 0.15,  -- weighted update factor
+  interaction_count INTEGER NOT NULL DEFAULT 0,
+  last_updated      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_player_embeddings_player_id ON player_embeddings(player_id);
+
+-- ============================================================
+-- Memory Summaries — summarised conversational memory
+-- ============================================================
+CREATE TABLE IF NOT EXISTS memory_summaries (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  thread_id   VARCHAR(255) NOT NULL,
+  player_id   UUID REFERENCES players(id) ON DELETE SET NULL,
+  summary     TEXT NOT NULL,
+  turn_count  INTEGER NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_memory_summaries_thread_id ON memory_summaries(thread_id);
+CREATE INDEX IF NOT EXISTS idx_memory_summaries_player_id ON memory_summaries(player_id);
+
+CREATE TRIGGER update_memory_summaries_updated_at
+  BEFORE UPDATE ON memory_summaries
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

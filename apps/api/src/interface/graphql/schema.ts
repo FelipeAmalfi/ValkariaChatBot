@@ -8,15 +8,22 @@ const typeDefs = `
     version: String!
   }
 
-  type Character {
-    id: ID!
+  # ── Lore types (world data — safe to expose) ──────────────────────────────
+
+  type Npc {
     name: String!
     description: String
-    role: String!
+    personality: String
+    location: String
+    interests: [String!]
     faction: String
-    locationId: ID
-    createdAt: String!
-    updatedAt: String!
+  }
+
+  type Location {
+    name: String!
+    description: String
+    short_description: String
+    services: [String!]
   }
 
   type ChatResponse {
@@ -51,8 +58,14 @@ const typeDefs = `
 
   type Query {
     health: HealthStatus!
-    character(id: ID!): Character
-    characters(faction: String, role: String, page: Int, pageSize: Int): [Character!]!
+
+    # NPC queries — max depth 2, pagination required for lists
+    npc(name: String!): Npc
+    npcs(location: String, faction: String, interest: String, page: Int, pageSize: Int): [Npc!]!
+
+    # Location queries
+    location(name: String!): Location
+    locations(page: Int, pageSize: Int): [Location!]!
   }
 
   type Mutation {
@@ -77,18 +90,48 @@ export function buildGraphQLSchema(container: Container) {
     Query: {
       ...healthResolver.Query,
 
-      character: async (_: unknown, args: { id: string }) => {
-        return container.characterRepository.findById(args.id)
+      npc: async (_: unknown, args: { name: string }) => {
+        const result = await container.loreQueryService.query(
+          'npc',
+          ['name', 'description', 'personality', 'location', 'interests', 'faction'],
+          { name: args.name },
+        )
+        return result.data[0] ?? null
       },
 
-      characters: async (
+      npcs: async (
         _: unknown,
-        args: { faction?: string; role?: string; page?: number; pageSize?: number },
+        args: { location?: string; faction?: string; interest?: string; page?: number; pageSize?: number },
       ) => {
-        return container.characterRepository.findAll(
-          { faction: args.faction, role: args.role },
-          { page: args.page, pageSize: args.pageSize },
+        const result = await container.loreQueryService.query(
+          'npc',
+          ['name', 'description', 'personality', 'location', 'interests', 'faction'],
+          { location: args.location, faction: args.faction, interest: args.interest },
         )
+        const page = Math.max(1, args.page ?? 1)
+        const size = Math.min(args.pageSize ?? 20, 50)
+        return result.data.slice((page - 1) * size, page * size)
+      },
+
+      location: async (_: unknown, args: { name: string }) => {
+        const result = await container.loreQueryService.query(
+          'location',
+          ['name', 'description', 'short_description', 'services'],
+          { name: args.name },
+        )
+        return result.data[0] ?? null
+      },
+
+      locations: async (_: unknown, args: { page?: number; pageSize?: number }) => {
+        const result = await container.loreQueryService.query('location', [
+          'name',
+          'description',
+          'short_description',
+          'services',
+        ])
+        const page = Math.max(1, args.page ?? 1)
+        const size = Math.min(args.pageSize ?? 20, 50)
+        return result.data.slice((page - 1) * size, page * size)
       },
     },
 

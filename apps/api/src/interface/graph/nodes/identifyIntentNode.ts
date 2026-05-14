@@ -6,22 +6,6 @@ import {
 import type { GraphDependencies } from '../dependencies.js'
 import type { ValkáriaState } from '../state.js'
 
-const REQUIRED_SLOTS_BY_INTENT: Record<string, string[]> = {
-  chat: [],
-  ask_character: ['characterName'],
-  ask_location: ['locationName'],
-  ask_lore: ['topic'],
-  unknown: [],
-}
-
-export function computeMissingSlots(
-  intent: string,
-  slots: Partial<Record<string, unknown>>,
-): string[] {
-  const required = REQUIRED_SLOTS_BY_INTENT[intent] ?? []
-  return required.filter((slot) => !slots[slot])
-}
-
 export function identifyIntentNode(deps: GraphDependencies) {
   return async (state: ValkáriaState): Promise<Partial<ValkáriaState>> => {
     // Reset per-turn action fields
@@ -31,11 +15,21 @@ export function identifyIntentNode(deps: GraphDependencies) {
       actionData: undefined,
     }
 
+    // Serialise session context for inclusion in the classification prompt when available
+    let sessionContextSummary: string | undefined
+    if (state.sessionContext) {
+      const { currentRole, playerName } = state.sessionContext
+      sessionContextSummary = JSON.stringify({ role: currentRole, playerName })
+    }
+
     try {
       const response = await deps.aiProvider.complete({
         messages: [
           { role: 'system', content: getSystemPrompt() },
-          { role: 'user', content: getUserPromptTemplate(state.message) },
+          {
+            role: 'user',
+            content: getUserPromptTemplate(state.message, sessionContextSummary),
+          },
         ],
         task: 'classification',
         temperature: 0.1,
@@ -45,12 +39,12 @@ export function identifyIntentNode(deps: GraphDependencies) {
       try {
         parsed = JSON.parse(response.content)
       } catch {
-        return { ...base, intent: 'unknown', slots: {} }
+        return { ...base, intent: 'unknown', slots: {}, complexity: 'simple', requiresRetrieval: false }
       }
 
       const result = IntentResponseSchema.safeParse(parsed)
       if (!result.success) {
-        return { ...base, intent: 'unknown', slots: {} }
+        return { ...base, intent: 'unknown', slots: {}, complexity: 'simple', requiresRetrieval: false }
       }
 
       return {
@@ -58,9 +52,12 @@ export function identifyIntentNode(deps: GraphDependencies) {
         intent: result.data.intent,
         // Slots are merged by the Annotation reducer — just pass new ones
         slots: result.data.slots,
+        confidence: result.data.confidence,
+        complexity: result.data.complexity,
+        requiresRetrieval: result.data.requiresRetrieval,
       }
     } catch {
-      return { ...base, intent: 'unknown' }
+      return { ...base, intent: 'unknown', complexity: 'simple', requiresRetrieval: false }
     }
   }
 }

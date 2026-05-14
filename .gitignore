@@ -38,6 +38,10 @@ Thumbs.db
 .vscode/settings.json
 .idea/
 
+# Claude Code 
+.claude/settings.local.json
+.claude/settings.json
+
 # Docker data
 infrastructure/docker/data/
 

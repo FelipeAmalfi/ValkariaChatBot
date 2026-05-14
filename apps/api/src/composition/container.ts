@@ -6,11 +6,16 @@ import type { Env } from '../shared/config/env.js'
 import { createModelConfig } from '../shared/config/modelConfig.js'
 import { PgCharacterRepository } from '../infrastructure/database/repositories/PgCharacterRepository.js'
 import { PgPlayerRepository } from '../infrastructure/database/repositories/PgPlayerRepository.js'
+import { PgNpcAffinityRepository } from '../infrastructure/database/repositories/PgNpcAffinityRepository.js'
+import { Neo4jGraphRepository } from '../infrastructure/database/repositories/Neo4jGraphRepository.js'
+import { PgLoreQueryService } from '../infrastructure/lore/PgLoreQueryService.js'
 import { PgVectorRetriever } from '../infrastructure/vector/PgVectorRetriever.js'
 import { OpenRouterProvider } from '../infrastructure/ai/OpenRouterProvider.js'
 import { RedisAuthChallengeStore } from '../infrastructure/auth/RedisAuthChallengeStore.js'
 import { EmbeddingSemanticAuthService } from '../infrastructure/auth/EmbeddingSemanticAuthService.js'
 import { JwtTokenService } from '../infrastructure/auth/JwtTokenService.js'
+import { RedisSessionContextStore } from '../infrastructure/session/RedisSessionContextStore.js'
+import { PgMemoryEngine } from '../infrastructure/memory/PgMemoryEngine.js'
 import { GetCharacterUseCase } from '../core/application/use-cases/GetCharacterUseCase.js'
 import { RegisterPlayerUseCase } from '../core/application/use-cases/RegisterPlayerUseCase.js'
 import { InitiatePlayerAuthUseCase } from '../core/application/use-cases/InitiatePlayerAuthUseCase.js'
@@ -21,9 +26,14 @@ import type { CharacterRepository } from '../core/application/ports/CharacterRep
 import type { VectorRetriever } from '../core/application/ports/VectorRetriever.js'
 import type { AIProvider } from '../core/application/ports/AIProvider.js'
 import type { PlayerRepository } from '../core/application/ports/PlayerRepository.js'
+import type { NpcAffinityRepository } from '../core/application/ports/NpcAffinityRepository.js'
+import type { GraphRepository } from '../core/application/ports/GraphRepository.js'
+import type { LoreQueryService } from '../core/application/ports/LoreQueryService.js'
 import type { AuthChallengeStore } from '../core/application/ports/AuthChallengeStore.js'
 import type { SemanticAuthService } from '../core/application/ports/SemanticAuthService.js'
 import type { TokenService } from '../core/application/ports/TokenService.js'
+import type { SessionContextStore } from '../core/application/ports/SessionContextStore.js'
+import type { MemoryEngine } from '../core/application/ports/MemoryEngine.js'
 import type { ValkáriaGraph } from '../interface/graph/builder.js'
 
 export interface Container {
@@ -36,6 +46,13 @@ export interface Container {
   characterRepository: CharacterRepository
   playerRepository: PlayerRepository
   vectorRetriever: VectorRetriever
+  affinityRepository: NpcAffinityRepository
+  graphRepository: GraphRepository
+  loreQueryService: LoreQueryService
+
+  // Session & Memory
+  sessionContextStore: SessionContextStore
+  memoryEngine: MemoryEngine
 
   // Auth Services
   tokenService: TokenService
@@ -65,15 +82,24 @@ export function createContainer(
 ): Container {
   const modelConfig = createModelConfig(process.env)
 
-  // Infrastructure
-  const characterRepository = new PgCharacterRepository(pgPool)
-  const playerRepository = new PgPlayerRepository(pgPool)
-  const vectorRetriever = new PgVectorRetriever(pgPool, modelConfig.embeddingDimensions)
+  // AI first — needed by vectorRetriever
   const aiProvider = new OpenRouterProvider(
     modelConfig,
     env.OPENROUTER_API_KEY,
     env.OPENROUTER_BASE_URL,
   )
+
+  // Infrastructure
+  const characterRepository = new PgCharacterRepository(pgPool)
+  const playerRepository = new PgPlayerRepository(pgPool)
+  const affinityRepository = new PgNpcAffinityRepository(pgPool)
+  const graphRepository = new Neo4jGraphRepository(neo4jDriver)
+  const loreQueryService = new PgLoreQueryService(pgPool)
+  const vectorRetriever = new PgVectorRetriever(pgPool, modelConfig.embeddingDimensions, aiProvider)
+
+  // Session & Memory
+  const sessionContextStore = new RedisSessionContextStore(redisClient)
+  const memoryEngine = new PgMemoryEngine(pgPool, aiProvider, sessionContextStore)
 
   // Auth infrastructure
   const tokenService = new JwtTokenService(env.JWT_SECRET, env.JWT_EXPIRES_IN)
@@ -104,7 +130,20 @@ export function createContainer(
   // LangGraph — MemorySaver is instantiated once per app process
   const checkpointer = new MemorySaver()
   const graph = buildValkáriaGraph(
-    { aiProvider, characterRepository, vectorRetriever, getCharacterUseCase },
+    {
+      aiProvider,
+      characterRepository,
+      vectorRetriever,
+      affinityRepository,
+      sessionContextStore,
+      memoryEngine,
+      graphRepository,
+      loreQueryService,
+      getCharacterUseCase,
+      initiatePlayerAuthUseCase,
+      validatePlayerAuthUseCase,
+      authenticateDMUseCase,
+    },
     checkpointer,
   )
 
@@ -115,6 +154,11 @@ export function createContainer(
     characterRepository,
     playerRepository,
     vectorRetriever,
+    affinityRepository,
+    graphRepository,
+    loreQueryService,
+    sessionContextStore,
+    memoryEngine,
     tokenService,
     authChallengeStore,
     semanticAuthService,

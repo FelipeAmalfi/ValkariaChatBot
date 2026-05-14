@@ -5,6 +5,7 @@ import type {
   VectorRetriever,
   VectorSearchFilters,
 } from '../../core/application/ports/VectorRetriever.js'
+import type { AIProvider } from '../../core/application/ports/AIProvider.js'
 
 const SCORE_THRESHOLD = 0.3
 const TABLE_NAME = 'langchain_pg_embedding'
@@ -14,6 +15,7 @@ export class PgVectorRetriever implements VectorRetriever {
   constructor(
     private readonly pool: pg.Pool,
     private readonly embeddingDimensions: number,
+    private readonly aiProvider: AIProvider,
   ) {}
 
   async ensureTable(): Promise<void> {
@@ -34,17 +36,18 @@ export class PgVectorRetriever implements VectorRetriever {
   }
 
   async search(
-    _query: string,
+    query: string,
     topK: number = DEFAULT_TOP_K,
     filters?: VectorSearchFilters,
   ): Promise<RetrievedDocument[]> {
-    // Embedding generation happens in the AI layer — this method receives a pre-computed vector.
-    // For Phase 2: the caller will pass the embedding vector, not raw text.
-    // Returning empty array as placeholder until embeddings are implemented.
-    void _query
-    void topK
-    void filters
-    return []
+    try {
+      const embeddingResponse = await this.aiProvider.embed({ input: query })
+      const embedding = embeddingResponse.embeddings[0]
+      if (!embedding || embedding.length === 0) return []
+      return this.searchByVector(embedding, topK, filters)
+    } catch (err) {
+      throw new RepositoryError('search', err)
+    }
   }
 
   async searchByVector(
@@ -93,14 +96,40 @@ export class PgVectorRetriever implements VectorRetriever {
     }
   }
 
-  async addDocuments(
-    documents: Array<{ id: string; content: string; metadata: Record<string, unknown> }>,
+  async addDocumentsWithEmbeddings(
+    documents: Array<{
+      id: string
+      content: string
+      metadata: Record<string, unknown>
+      embedding: number[]
+    }>,
   ): Promise<void> {
-    // Embedding generation will be done by the ingestion pipeline in Phase 2.
-    // This is a placeholder that stores documents without embeddings for now.
-    void documents
-    throw new Error(
-      'addDocuments requires embedding generation — implement in Phase 2 ingestion script.',
-    )
+    if (documents.length === 0) return
+    const client = await this.pool.connect()
+    try {
+      await client.query('BEGIN')
+      for (const doc of documents) {
+        await client.query(
+          `INSERT INTO ${TABLE_NAME} (collection_id, embedding, document, cmetadata, custom_id)
+           VALUES (NULL, $1::vector, $2, $3::jsonb, $4)
+           ON CONFLICT (custom_id) DO UPDATE
+             SET embedding = EXCLUDED.embedding,
+                 document  = EXCLUDED.document,
+                 cmetadata = EXCLUDED.cmetadata`,
+          [
+            `[${doc.embedding.join(',')}]`,
+            doc.content,
+            JSON.stringify(doc.metadata),
+            doc.id,
+          ],
+        )
+      }
+      await client.query('COMMIT')
+    } catch (err) {
+      await client.query('ROLLBACK')
+      throw new RepositoryError('addDocumentsWithEmbeddings', err)
+    } finally {
+      client.release()
+    }
   }
 }

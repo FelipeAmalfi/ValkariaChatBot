@@ -21,7 +21,9 @@
       "Bash(pnpm --filter @valkaria/api add jsonwebtoken)",
       "Bash(pnpm --filter @valkaria/api add -D @types/jsonwebtoken)",
       "Bash(pnpm add *)",
-      "Bash(pnpm typecheck *)"
+      "Bash(pnpm typecheck *)",
+      "Bash(npx tsc --noEmit *)",
+      "Bash(npx tsc --noEmit)"
     ]
   }
 }
