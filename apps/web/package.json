@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf .next out"
+    "clean": "rimraf .next out",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
@@ -24,6 +25,7 @@
     "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/node": "^22.15.17",
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.2",
