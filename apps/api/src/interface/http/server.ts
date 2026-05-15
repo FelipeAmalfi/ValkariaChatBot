@@ -42,6 +42,7 @@ export async function createServer(env: Env, container: Container) {
     resolvers,
     graphiql: env.NODE_ENV === 'development',
     path: '/graphql',
+    context: (request) => ({ request }),
   })
 
   // Error handler (must come before routes)
@@ -53,6 +54,18 @@ export async function createServer(env: Env, container: Container) {
     timestamp: new Date().toISOString(),
     version: '0.1.0',
   }))
+
+  // Session identity check — reads Redis session by threadId
+  app.get('/api/me', async (request) => {
+    const threadId = request.headers['x-thread-id'] as string | undefined
+    if (!threadId) return { playerName: null, role: 'guest', validationState: 'pending' }
+    const session = await container.sessionContextStore.load(threadId)
+    return {
+      playerName: session?.playerName ?? null,
+      role: session?.currentRole ?? 'guest',
+      validationState: session?.validationState ?? 'pending',
+    }
+  })
 
   // HTTP controllers
   await app.register(ChatController({ graph: container.graph }), { prefix: '/api/v1' })

@@ -56,6 +56,19 @@ export class PgPlayerRepository implements PlayerRepository {
     }
   }
 
+  async findAll(page = 1, pageSize = 50): Promise<Player[]> {
+    try {
+      const offset = (Math.max(1, page) - 1) * Math.min(pageSize, 100)
+      const result = await this.pool.query(
+        'SELECT * FROM players ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+        [Math.min(pageSize, 100), offset],
+      )
+      return result.rows.map((r) => mapRow(r as Record<string, unknown>))
+    } catch (err) {
+      throw new RepositoryError('findAll', err instanceof Error ? err : undefined)
+    }
+  }
+
   async create(input: CreatePlayerInput): Promise<Player> {
     try {
       const result = await this.pool.query(

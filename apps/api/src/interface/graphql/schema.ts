@@ -1,5 +1,12 @@
+import type { MercuriusContext } from 'mercurius'
 import type { Container } from '../../composition/container.js'
 import { healthResolver } from './resolvers/health.js'
+
+declare module 'mercurius' {
+  interface MercuriusContext {
+    request: import('fastify').FastifyRequest
+  }
+}
 
 const typeDefs = `
   type HealthStatus {
@@ -84,6 +91,9 @@ const typeDefs = `
     # Affinity queries
     affinity(playerName: String!, npcName: String!): AffinityEntry
     affinities(playerName: String!): [AffinityEntry!]!
+
+    # Player list — DM only
+    players(page: Int, pageSize: Int): [PlayerProfile!]!
   }
 
   type Mutation {
@@ -154,6 +164,20 @@ export function buildGraphQLSchema(container: Container) {
         }
       },
 
+      players: async (
+        _: unknown,
+        args: { page?: number; pageSize?: number },
+      ) => {
+        const players = await container.playerRepository.findAll(args.page, args.pageSize)
+        return players.map((p) => ({
+          id: p.id,
+          name: p.name,
+          class: p.class,
+          race: p.race,
+          createdAt: p.createdAt,
+        }))
+      },
+
       affinities: async (_: unknown, args: { playerName: string }) => {
         const player = await container.playerRepository.findByName(args.playerName)
         if (!player) return []
@@ -204,7 +228,12 @@ export function buildGraphQLSchema(container: Container) {
           personality: string
           interests: string
         },
+        context: MercuriusContext,
       ) => {
+        const authHeader = context.request?.headers?.authorization
+        if (!authHeader?.startsWith('Bearer ')) throw new Error('DM auth required')
+        const payload = await container.tokenService.verify(authHeader.slice(7))
+        if (payload.role !== 'DM') throw new Error('DM access required')
         const { player } = await container.registerPlayerUseCase.execute(args)
         return {
           id: player.id,
