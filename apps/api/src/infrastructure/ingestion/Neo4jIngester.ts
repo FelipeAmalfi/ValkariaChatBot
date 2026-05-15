@@ -75,13 +75,16 @@ export class Neo4jIngester {
         }
 
         // Create LOCATED_IN relationship
+        // NPC CSV uses display names (e.g. "Casa de Banho") while Location nodes
+        // use the slug form from locations.csv (e.g. "casa_de_banho"). Normalise before matching.
         if (npc.location) {
           try {
+            const locationSlug = npc.location.toLowerCase().replace(/ /g, '_')
             await session.run(
               `MATCH (n:NPC {name: $npcName})
                MATCH (l:Location {name: $locationName})
                MERGE (n)-[:LOCATED_IN]->(l)`,
-              { npcName: npc.name, locationName: npc.location },
+              { npcName: npc.name, locationName: locationSlug },
             )
             relationships++
           } catch (err) {

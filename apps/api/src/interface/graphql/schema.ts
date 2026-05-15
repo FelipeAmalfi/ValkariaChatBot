@@ -32,6 +32,20 @@ const typeDefs = `
     intent: String
   }
 
+  enum AffinityLevel {
+    none
+    cordial
+    loyal
+    intimate
+  }
+
+  type AffinityEntry {
+    npcName: String!
+    level: AffinityLevel!
+    score: Int!
+    interactionCount: Int!
+  }
+
   enum Role {
     PLAYER
     DM
@@ -66,6 +80,10 @@ const typeDefs = `
     # Location queries
     location(name: String!): Location
     locations(page: Int, pageSize: Int): [Location!]!
+
+    # Affinity queries
+    affinity(playerName: String!, npcName: String!): AffinityEntry
+    affinities(playerName: String!): [AffinityEntry!]!
   }
 
   type Mutation {
@@ -81,6 +99,7 @@ const typeDefs = `
     initiatePlayerAuth(playerName: String!): ChallengeResponse!
     verifyPlayerAuth(challengeId: String!, answer: String!): AuthToken!
     authenticateDM(password: String!): AuthToken!
+    updateAffinity(playerName: String!, npcName: String!, score: Int!): AffinityEntry!
   }
 `
 
@@ -120,6 +139,31 @@ export function buildGraphQLSchema(container: Container) {
           { name: args.name },
         )
         return result.data[0] ?? null
+      },
+
+      affinity: async (_: unknown, args: { playerName: string; npcName: string }) => {
+        const player = await container.playerRepository.findByName(args.playerName)
+        if (!player) return null
+        const entry = await container.affinityRepository.findByPlayerAndNpc(player.id, args.npcName)
+        if (!entry) return null
+        return {
+          npcName: entry.npcName,
+          level: entry.level,
+          score: entry.score,
+          interactionCount: entry.interactionCount,
+        }
+      },
+
+      affinities: async (_: unknown, args: { playerName: string }) => {
+        const player = await container.playerRepository.findByName(args.playerName)
+        if (!player) return []
+        const entries = await container.affinityRepository.findAllByPlayer(player.id)
+        return entries.map((e) => ({
+          npcName: e.npcName,
+          level: e.level,
+          score: e.score,
+          interactionCount: e.interactionCount,
+        }))
       },
 
       locations: async (_: unknown, args: { page?: number; pageSize?: number }) => {
@@ -186,6 +230,23 @@ export function buildGraphQLSchema(container: Container) {
       authenticateDM: async (_: unknown, args: { password: string }) => {
         const { token } = await container.authenticateDMUseCase.execute(args.password)
         return { token, playerName: null }
+      },
+
+      updateAffinity: async (
+        _: unknown,
+        args: { playerName: string; npcName: string; score: number },
+      ) => {
+        const player = await container.playerRepository.findByName(args.playerName)
+        if (!player) throw new Error(`Player "${args.playerName}" não encontrado`)
+        const current = await container.affinityRepository.findByPlayerAndNpc(player.id, args.npcName)
+        const delta = args.score - (current?.score ?? 0)
+        const updated = await container.affinityRepository.upsert(player.id, args.npcName, delta)
+        return {
+          npcName: updated.npcName,
+          level: updated.level,
+          score: updated.score,
+          interactionCount: updated.interactionCount,
+        }
       },
     },
   }

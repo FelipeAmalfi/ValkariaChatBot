@@ -172,14 +172,12 @@ export class EmbeddingIngester {
             `INSERT INTO langchain_pg_embedding
                (collection_id, embedding, document, cmetadata, custom_id)
              VALUES
-               ($1, $2::vector, $3, $4, $5)
+               (NULL, $1::vector, $2, $3, $4)
              ON CONFLICT (custom_id) DO UPDATE SET
-               embedding     = EXCLUDED.embedding,
-               document      = EXCLUDED.document,
-               cmetadata     = EXCLUDED.cmetadata,
-               collection_id = EXCLUDED.collection_id`,
+               embedding  = EXCLUDED.embedding,
+               document   = EXCLUDED.document,
+               cmetadata  = EXCLUDED.cmetadata`,
             [
-              target.collection,
               `[${embedding.join(',')}]`,
               target.document,
               JSON.stringify(target.metadata),

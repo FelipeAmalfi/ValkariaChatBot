@@ -51,8 +51,7 @@ export function simpleRetrievalNode(deps: GraphDependencies) {
 
     switch (intent) {
       case 'ask_character':
-      case 'ask_benefits':
-      case 'ask_affinity': {
+      case 'ask_benefits': {
         const name = slots.characterName ?? slots.affinityTarget
         if (!name) {
           return {

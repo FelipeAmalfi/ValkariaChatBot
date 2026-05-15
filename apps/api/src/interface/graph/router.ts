@@ -23,31 +23,40 @@ const GRAPH_RETRIEVAL_INTENTS: Intent[] = ['ask_relationship', 'search_npcs', 's
 export function routeAfterIntent(state: ValkáriaState): string {
   const { intent, complexity, slots } = state
 
-  // Identity flows
-  if (intent === 'identify_player' || intent === 'identify_dm') return 'identityFlow'
+  switch (intent) {
+    case 'identify_player':
+    case 'identify_dm':
+      return 'identityFlow'
 
-  // Memory query — lightweight, answered from session alone
-  if (intent === 'ask_memory') return 'memoryNode'
+    case 'ask_memory':
+      return 'memoryNode'
 
-  // Generic conversation or unrecognised intent — no retrieval needed
-  if (intent === 'chat' || intent === 'unknown') return 'narrativeResponse'
+    case 'ask_affinity':
+      return 'affinityNode'
 
-  // Graph/lore queries — dynamic Cypher generation via LLM
-  if (intent && GRAPH_RETRIEVAL_INTENTS.includes(intent)) {
-    if (
-      intent === 'ask_relationship' ||
-      slots.requestedFields?.length ||
-      slots.locationName ||
-      slots.topic
-    ) {
-      return 'cypherGenerate'
-    }
+    case 'chat':
+    case 'unknown':
+      return 'narrativeResponse'
+
+    case 'ask_relationship':
+    case 'search_npcs':
+    case 'search_locations':
+      if (
+        intent === 'ask_relationship' ||
+        slots.requestedFields?.length ||
+        slots.locationName ||
+        slots.topic
+      ) {
+        return 'cypherGenerate'
+      }
+      return 'simpleRetrieval'
+
+    default:
+      break
   }
 
-  // Multistep intents or complexity flag set by the classifier
   if (intent && MULTISTEP_INTENTS.includes(intent)) return 'planner'
   if (complexity === 'multistep') return 'planner'
 
-  // Simple retrieval — single entity lookups
   return 'simpleRetrieval'
 }

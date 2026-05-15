@@ -15,6 +15,7 @@ import { cypherGenerateNode } from './nodes/cypherGenerateNode.js'
 import { cypherExecuteNode } from './nodes/cypherExecuteNode.js'
 import { retrievalOrchestratorNode } from './nodes/retrievalOrchestratorNode.js'
 import { turnPersistenceNode } from './nodes/turnPersistenceNode.js'
+import { affinityNode } from './nodes/affinityNode.js'
 import type { GraphDependencies } from './dependencies.js'
 
 export function buildValkáriaGraph(
@@ -38,6 +39,7 @@ export function buildValkáriaGraph(
     .addNode('memoryNode', memoryNode(deps))
     .addNode('narrativeResponse', narrativeResponseNode(deps))
     .addNode('turnPersistence', turnPersistenceNode(deps))
+    .addNode('affinityNode', affinityNode(deps))
 
     // ── Edge wiring ──────────────────────────────────────────────────────────
     // Entry point
@@ -60,6 +62,7 @@ export function buildValkáriaGraph(
       simpleRetrieval: 'simpleRetrieval',
       planner: 'planner',
       memoryNode: 'memoryNode',
+      affinityNode: 'affinityNode',
       narrativeResponse: 'narrativeResponse',
     })
 
@@ -84,6 +87,9 @@ export function buildValkáriaGraph(
       retrievalOrchestrator: 'retrievalOrchestrator',
       simpleRetrieval: 'simpleRetrieval',
     })
+
+    // Affinity node feeds into narrative response
+    .addEdge('affinityNode', 'narrativeResponse')
 
     // Orchestrator feeds into narrative response
     .addEdge('retrievalOrchestrator', 'narrativeResponse')
