@@ -7,6 +7,7 @@ import { createModelConfig } from '../shared/config/modelConfig.js'
 import { PgCharacterRepository } from '../infrastructure/database/repositories/PgCharacterRepository.js'
 import { PgPlayerRepository } from '../infrastructure/database/repositories/PgPlayerRepository.js'
 import { PgNpcAffinityRepository } from '../infrastructure/database/repositories/PgNpcAffinityRepository.js'
+import { PgRecommendationFeedbackRepository } from '../infrastructure/database/repositories/PgRecommendationFeedbackRepository.js'
 import { Neo4jGraphRepository } from '../infrastructure/database/repositories/Neo4jGraphRepository.js'
 import { PgLoreQueryService } from '../infrastructure/lore/PgLoreQueryService.js'
 import { PgVectorRetriever } from '../infrastructure/vector/PgVectorRetriever.js'
@@ -27,6 +28,7 @@ import type { VectorRetriever } from '../core/application/ports/VectorRetriever.
 import type { AIProvider } from '../core/application/ports/AIProvider.js'
 import type { PlayerRepository } from '../core/application/ports/PlayerRepository.js'
 import type { NpcAffinityRepository } from '../core/application/ports/NpcAffinityRepository.js'
+import type { RecommendationFeedbackRepository } from '../core/application/ports/RecommendationFeedbackRepository.js'
 import type { GraphRepository } from '../core/application/ports/GraphRepository.js'
 import type { LoreQueryService } from '../core/application/ports/LoreQueryService.js'
 import type { AuthChallengeStore } from '../core/application/ports/AuthChallengeStore.js'
@@ -47,6 +49,7 @@ export interface Container {
   playerRepository: PlayerRepository
   vectorRetriever: VectorRetriever
   affinityRepository: NpcAffinityRepository
+  feedbackRepository: RecommendationFeedbackRepository
   graphRepository: GraphRepository
   loreQueryService: LoreQueryService
 
@@ -93,6 +96,7 @@ export function createContainer(
   const characterRepository = new PgCharacterRepository(pgPool)
   const playerRepository = new PgPlayerRepository(pgPool)
   const affinityRepository = new PgNpcAffinityRepository(pgPool)
+  const feedbackRepository = new PgRecommendationFeedbackRepository(pgPool)
   const graphRepository = new Neo4jGraphRepository(neo4jDriver)
   const loreQueryService = new PgLoreQueryService(pgPool)
   const vectorRetriever = new PgVectorRetriever(pgPool, modelConfig.embeddingDimensions, aiProvider)
@@ -135,6 +139,8 @@ export function createContainer(
       characterRepository,
       vectorRetriever,
       affinityRepository,
+      feedbackRepository,
+      pgPool,
       sessionContextStore,
       memoryEngine,
       graphRepository,
@@ -155,6 +161,7 @@ export function createContainer(
     playerRepository,
     vectorRetriever,
     affinityRepository,
+    feedbackRepository,
     graphRepository,
     loreQueryService,
     sessionContextStore,

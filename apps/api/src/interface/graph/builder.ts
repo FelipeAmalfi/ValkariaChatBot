@@ -16,6 +16,8 @@ import { cypherExecuteNode } from './nodes/cypherExecuteNode.js'
 import { retrievalOrchestratorNode } from './nodes/retrievalOrchestratorNode.js'
 import { turnPersistenceNode } from './nodes/turnPersistenceNode.js'
 import { affinityNode } from './nodes/affinityNode.js'
+import { recommendationNode } from './nodes/recommendationNode.js'
+import { feedbackNode } from './nodes/feedbackNode.js'
 import type { GraphDependencies } from './dependencies.js'
 
 export function buildValkáriaGraph(
@@ -40,6 +42,8 @@ export function buildValkáriaGraph(
     .addNode('narrativeResponse', narrativeResponseNode(deps))
     .addNode('turnPersistence', turnPersistenceNode(deps))
     .addNode('affinityNode', affinityNode(deps))
+    .addNode('recommendationNode', recommendationNode(deps))
+    .addNode('feedbackNode', feedbackNode(deps))
 
     // ── Edge wiring ──────────────────────────────────────────────────────────
     // Entry point
@@ -64,6 +68,8 @@ export function buildValkáriaGraph(
       memoryNode: 'memoryNode',
       affinityNode: 'affinityNode',
       narrativeResponse: 'narrativeResponse',
+      recommendationNode: 'recommendationNode',
+      feedbackNode: 'feedbackNode',
     })
 
     // Identity flow feeds into narrative response for a consistent response node
@@ -90,6 +96,12 @@ export function buildValkáriaGraph(
 
     // Affinity node feeds into narrative response
     .addEdge('affinityNode', 'narrativeResponse')
+
+    // Recommendation node feeds into narrative response for rich narrative output
+    .addEdge('recommendationNode', 'narrativeResponse')
+
+    // Feedback node goes straight to persistence — no narrative needed
+    .addEdge('feedbackNode', 'turnPersistence')
 
     // Orchestrator feeds into narrative response
     .addEdge('retrievalOrchestrator', 'narrativeResponse')

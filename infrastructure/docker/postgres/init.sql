@@ -252,3 +252,16 @@ CREATE INDEX IF NOT EXISTS idx_memory_summaries_player_id ON memory_summaries(pl
 CREATE TRIGGER update_memory_summaries_updated_at
   BEFORE UPDATE ON memory_summaries
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================
+-- Recommendation Feedback — player feedback on NPC recommendations
+-- ============================================================
+CREATE TABLE IF NOT EXISTS recommendation_feedback (
+  id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  player_id  UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+  npc_name   VARCHAR(255) NOT NULL,
+  helpful    BOOLEAN NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_rec_feedback_player ON recommendation_feedback (player_id);

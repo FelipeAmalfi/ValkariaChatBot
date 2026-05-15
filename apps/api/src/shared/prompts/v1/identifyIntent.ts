@@ -23,6 +23,8 @@ export const IntentSchema = z.enum([
 
   // Recommendations
   'ask_recommendation',    // Me recomende um NPC / Qual NPC combina comigo?
+  'recommend_npcs',        // Recomendação baseada no perfil do personagem — "Com quem devo interagir?"
+  'feedback_recommendation', // Feedback sobre recomendação — "Essa recomendação faz sentido" / "Não combina"
 
   // Affinity actions
   'increase_affinity',     // Quero aumentar afinidade com X / Presentear X
@@ -48,6 +50,7 @@ export const SlotsSchema = z.object({
   affinityTarget: z.string().optional(),
   recommendationFilters: z.string().optional(),
   pendingAnswer: z.string().optional(),
+  feedbackSentiment: z.enum(['positive', 'negative']).optional(),
   // Graph / lore query slots
   requestedEntity: z.enum(['npc', 'location']).optional(),
   requestedFields: z.array(z.string()).optional(),
@@ -74,6 +77,7 @@ export const REQUIRED_SLOTS_BY_INTENT: Partial<Record<Intent, (keyof Slots)[]>> 
   ask_affinity: ['affinityTarget'],
   ask_location: ['locationName'],
   increase_affinity: ['affinityTarget'],
+  feedback_recommendation: ['feedbackSentiment'],
 }
 
 // Intents that always need multistep orchestration
@@ -98,6 +102,8 @@ export function getSystemPrompt(): string {
       search_npcs: 'User searches for NPCs matching criteria — class, location, personality, interests',
       search_locations: 'User searches for locations matching a purpose — healing, training, shopping',
       ask_recommendation: 'User asks for NPC recommendations based on their character class, personality, or interests',
+      recommend_npcs: 'User explicitly asks to be matched with NPCs based on their character profile — "Com quem devo interagir?", "Que NPC combina comigo?"',
+      feedback_recommendation: 'User evaluates a previous recommendation — "essa recomendação faz sentido", "não combina comigo", "boa sugestão"',
       increase_affinity: 'User wants to interact with or gift an NPC to increase affinity',
       ask_memory: 'User asks about previous conversation context or past interactions',
       chat: 'Generic conversation, greetings, thanks, or off-topic',
@@ -115,6 +121,7 @@ export function getSystemPrompt(): string {
       'affinityTarget: NPC name when action targets an NPC for affinity',
       'recommendationFilters: free-text describing what the user is looking for',
       'pendingAnswer: the user answer when they are responding to an identity challenge',
+      'feedbackSentiment: "positive" if user approves the recommendation, "negative" if they reject it — only for feedback_recommendation intent',
       'requestedEntity: "npc" or "location" — entity type the user is asking about',
       'requestedFields: array of field names the user explicitly wants (e.g. ["name","interests","location"]). Valid NPC fields: name, description, personality, location, interests, faction. Valid location fields: name, description, short_description, services.',
       'relationshipTarget: second NPC name when asking about relationship between two characters',

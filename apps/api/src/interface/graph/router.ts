@@ -1,5 +1,4 @@
 import type { ValkáriaState } from './state.js'
-import type { Intent } from './state.js'
 import { MULTISTEP_INTENTS } from '../../shared/prompts/v1/identifyIntent.js'
 
 export function routeAfterPlanner(state: ValkáriaState): string {
@@ -18,7 +17,6 @@ export function routeAfterSanitize(state: ValkáriaState): string {
   return 'identifyIntent'
 }
 
-const GRAPH_RETRIEVAL_INTENTS: Intent[] = ['ask_relationship', 'search_npcs', 'search_locations']
 
 export function routeAfterIntent(state: ValkáriaState): string {
   const { intent, complexity, slots } = state
@@ -37,6 +35,12 @@ export function routeAfterIntent(state: ValkáriaState): string {
     case 'chat':
     case 'unknown':
       return 'narrativeResponse'
+
+    case 'recommend_npcs':
+      return 'recommendationNode'
+
+    case 'feedback_recommendation':
+      return 'feedbackNode'
 
     case 'ask_relationship':
     case 'search_npcs':

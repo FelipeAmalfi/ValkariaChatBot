@@ -1,7 +1,9 @@
+import type pg from 'pg'
 import type { AIProvider } from '../../core/application/ports/AIProvider.js'
 import type { CharacterRepository } from '../../core/application/ports/CharacterRepository.js'
 import type { VectorRetriever } from '../../core/application/ports/VectorRetriever.js'
 import type { NpcAffinityRepository } from '../../core/application/ports/NpcAffinityRepository.js'
+import type { RecommendationFeedbackRepository } from '../../core/application/ports/RecommendationFeedbackRepository.js'
 import type { SessionContextStore } from '../../core/application/ports/SessionContextStore.js'
 import type { MemoryEngine } from '../../core/application/ports/MemoryEngine.js'
 import type { GraphRepository } from '../../core/application/ports/GraphRepository.js'
@@ -16,6 +18,8 @@ export interface GraphDependencies {
   characterRepository: CharacterRepository
   vectorRetriever: VectorRetriever
   affinityRepository: NpcAffinityRepository
+  feedbackRepository: RecommendationFeedbackRepository
+  pgPool: pg.Pool
   sessionContextStore: SessionContextStore
   memoryEngine: MemoryEngine
   graphRepository: GraphRepository

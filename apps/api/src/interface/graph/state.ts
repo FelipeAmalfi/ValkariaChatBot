@@ -105,6 +105,12 @@ export const ValkáriaStateAnnotation = Annotation.Root({
     default: () => undefined,
   }),
 
+  // Last NPCs recommended — used by feedbackNode when affinityTarget slot is absent
+  lastRecommendedNpcs: Annotation<string[]>({
+    reducer: (_, next) => next,
+    default: () => [],
+  }),
+
   // ─── Action results (reset each turn) ────────────────────────────────────
   actionSuccess: Annotation<boolean | undefined>({
     reducer: (_, next) => next,

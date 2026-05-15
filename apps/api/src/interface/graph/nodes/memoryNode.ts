@@ -4,7 +4,7 @@ import type { ValkáriaState } from '../state.js'
 const NO_MEMORY_RESPONSE =
   'Não tenho memórias anteriores desta conversa. Esta parece ser a nossa primeira interação nesta sessão, aventureiro.'
 
-export function memoryNode(_deps: GraphDependencies) {
+export function memoryNode(deps: GraphDependencies) {
   return async (state: ValkáriaState): Promise<Partial<ValkáriaState>> => {
     try {
       const { sessionContext } = state
@@ -40,6 +40,23 @@ export function memoryNode(_deps: GraphDependencies) {
           .map((msg, i) => `  ${i + 1}. ${msg}`)
           .join('\n')
         parts.push(`\nContexto recente:\n${recentLines}`)
+      }
+
+      if (state.playerId) {
+        const weights = await deps.feedbackRepository
+          .getWeightsByPlayer(state.playerId)
+          .catch(() => new Map<string, number>())
+
+        if (weights.size > 0) {
+          const helpful = [...weights.entries()].filter(([, w]) => w > 0).map(([n]) => n)
+          const unhelpful = [...weights.entries()].filter(([, w]) => w < 0).map(([n]) => n)
+          const feedbackLines: string[] = []
+          if (helpful.length) feedbackLines.push(`NPCs bem avaliados: ${helpful.join(', ')}`)
+          if (unhelpful.length) feedbackLines.push(`NPCs mal avaliados: ${unhelpful.join(', ')}`)
+          if (feedbackLines.length) {
+            parts.push(`\n\nPadrões de feedback de recomendação:\n  ${feedbackLines.join('\n  ')}`)
+          }
+        }
       }
 
       return { response: parts.join('') }
