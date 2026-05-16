@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   experimental: {
     typedRoutes: true,
   },
+  productionBrowserSourceMaps: false,
 }
 
 export default nextConfig

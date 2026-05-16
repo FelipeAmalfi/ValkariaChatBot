@@ -27,8 +27,11 @@ export async function createServer(env: Env, container: Container) {
   // Security plugins
   await app.register(helmet, { contentSecurityPolicy: false })
   await app.register(cors, {
-    origin: env.CORS_ORIGIN,
+    origin: env.FRONTEND_URL,
     credentials: true,
+    // In production, any cookies set via reply.setCookie must include:
+    //   sameSite: 'none', secure: true
+    // because frontend (Vercel) and API (Render) are cross-origin.
   })
   await app.register(rateLimit, {
     max: env.RATE_LIMIT_MAX,

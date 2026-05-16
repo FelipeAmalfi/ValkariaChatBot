@@ -64,15 +64,15 @@ export function recommendationNode(deps: GraphDependencies) {
       return { ...doc, score: Math.min(1, Math.max(0, doc.score + weight)) }
     })
 
-    // 4. Sort and take top 5
+    // 4. Sort and take top 3
     adjusted.sort((a, b) => b.score - a.score)
-    const top5 = adjusted.slice(0, 5)
+    const top3 = adjusted.slice(0, 3)
 
     // 5. Build affinity context for the narrative node
     let affinityContext = ''
     if (affinities.length) {
       const relevant = affinities.filter((a) => {
-        const meta = top5.find((d) => {
+        const meta = top3.find((d) => {
           const n = (d.metadata as Record<string, unknown>).name
           return typeof n === 'string' && n.toLowerCase() === a.npcName.toLowerCase()
         })
@@ -94,13 +94,13 @@ export function recommendationNode(deps: GraphDependencies) {
           )
         : ''
 
-    const lastRecommendedNpcs = top5
+    const lastRecommendedNpcs = top3
       .map((d) => (d.metadata as Record<string, unknown>).name as string)
       .filter(Boolean)
 
     return {
-      retrievalResults: top5,
-      aggregatedContext: formatDocs(top5) + affinityContext + fullAffinityContext,
+      retrievalResults: top3,
+      aggregatedContext: formatDocs(top3) + affinityContext + fullAffinityContext,
       lastRecommendedNpcs,
     }
   }

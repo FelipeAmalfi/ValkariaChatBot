@@ -26,7 +26,7 @@ const EnvSchema = z.object({
 
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_EXPIRES_IN: z.string().default('24h'),
-  CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  FRONTEND_URL: z.string().default('http://localhost:3000'),
   RATE_LIMIT_MAX: z.coerce.number().default(100),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60_000),
 
@@ -37,7 +37,11 @@ const EnvSchema = z.object({
 export type Env = z.infer<typeof EnvSchema>
 
 export function loadEnv(): Env {
-  const result = EnvSchema.safeParse(process.env)
+  // Render injects PORT; API_PORT takes precedence when explicitly set
+  const result = EnvSchema.safeParse({
+    ...process.env,
+    API_PORT: process.env.API_PORT ?? process.env.PORT,
+  })
 
   if (!result.success) {
     const errors = result.error.errors

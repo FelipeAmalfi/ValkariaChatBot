@@ -264,7 +264,14 @@ export function buildGraphQLSchema(container: Container) {
       updateAffinity: async (
         _: unknown,
         args: { playerName: string; npcName: string; score: number },
+        context: MercuriusContext,
       ) => {
+        const authHeader = context.request?.headers?.authorization
+        if (!authHeader?.startsWith('Bearer ')) throw new Error('Auth required')
+        const payload = await container.tokenService.verify(authHeader.slice(7))
+        if (payload.role !== 'DM' && payload.playerName !== args.playerName) {
+          throw new Error('Acesso negado: você só pode atualizar sua própria afinidade')
+        }
         const player = await container.playerRepository.findByName(args.playerName)
         if (!player) throw new Error(`Player "${args.playerName}" não encontrado`)
         const current = await container.affinityRepository.findByPlayerAndNpc(player.id, args.npcName)

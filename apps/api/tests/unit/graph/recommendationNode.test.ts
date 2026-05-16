@@ -41,7 +41,7 @@ describe('recommendationNode — no player', () => {
 })
 
 describe('recommendationNode — with player embedding', () => {
-  it('uses vector search when embedding exists and returns top-5', async () => {
+  it('uses vector search when embedding exists and returns top-3', async () => {
     const docs = ['Aaliyah', 'Bragi', 'Cira', 'Dex', 'Elia', 'Finn', 'Gara'].map((n, i) =>
       makeDoc(n, 0.9 - i * 0.1),
     )
@@ -56,8 +56,8 @@ describe('recommendationNode — with player embedding', () => {
     })
     const node = recommendationNode(deps)
     const result = await node(makeState({ playerId: 'p-1' }))
-    expect(result.retrievalResults).toHaveLength(5)
-    expect(result.lastRecommendedNpcs).toHaveLength(5)
+    expect(result.retrievalResults).toHaveLength(3)
+    expect(result.lastRecommendedNpcs).toHaveLength(3)
   })
 
   it('falls back to text search when no embedding found', async () => {

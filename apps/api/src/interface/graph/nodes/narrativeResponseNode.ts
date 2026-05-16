@@ -71,6 +71,15 @@ function buildUserPrompt(state: ValkáriaState): string {
     parts.push(`Intent identificada: ${state.intent}`)
   }
 
+  if (state.intent === 'recommend_npcs') {
+    parts.push(
+      'Formate a resposta como uma recomendação narrativa. ' +
+      'Para cada NPC recomendado, escreva uma frase evocativa que conecte o personagem ao perfil do jogador. ' +
+      'Comece com uma abertura imersiva como "Os ventos de Candessah te guiam até..." ou similar. ' +
+      'Apresente no máximo 3 NPCs. Não liste dados brutos — traduza em narrativa.',
+    )
+  }
+
   parts.push('Responda em português brasileiro, com tom narrativo de RPG.')
 
   return parts.join('\n\n')
