@@ -269,7 +269,7 @@ export function buildGraphQLSchema(container: Container) {
         const authHeader = context.request?.headers?.authorization
         if (!authHeader?.startsWith('Bearer ')) throw new Error('Auth required')
         const payload = await container.tokenService.verify(authHeader.slice(7))
-        if (payload.role !== 'DM' && payload.playerName !== args.playerName) {
+        if (payload.role !== 'DM' && payload.name !== args.playerName) {
           throw new Error('Acesso negado: você só pode atualizar sua própria afinidade')
         }
         const player = await container.playerRepository.findByName(args.playerName)
