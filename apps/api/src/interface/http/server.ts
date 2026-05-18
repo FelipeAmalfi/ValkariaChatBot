@@ -78,6 +78,7 @@ export async function createServer(env: Env, container: Container) {
       initiatePlayerAuthUseCase: container.initiatePlayerAuthUseCase,
       validatePlayerAuthUseCase: container.validatePlayerAuthUseCase,
       authenticateDMUseCase: container.authenticateDMUseCase,
+      tokenService: container.tokenService,
     }),
     { prefix: '/api/v1/auth' },
   )

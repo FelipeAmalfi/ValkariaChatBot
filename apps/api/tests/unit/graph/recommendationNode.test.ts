@@ -129,6 +129,28 @@ describe('recommendationNode — feedback weight adjustment', () => {
   })
 })
 
+describe('recommendationNode — warrior combat profile', () => {
+  it('returns combat NPCs when vector search is driven by a warrior player profile', async () => {
+    const combatDocs = [
+      makeDoc('Ragnar', 0.95),
+      makeDoc('Kira', 0.88),
+      makeDoc('Bruto', 0.82),
+    ]
+    const deps = makeDeps({
+      pgPool: {
+        query: vi.fn().mockResolvedValue({ rows: [{ embedding: JSON.stringify(Array(3).fill(0.1)) }] }),
+      },
+      vectorRetriever: {
+        searchByVector: vi.fn().mockResolvedValue(combatDocs),
+        search: vi.fn(),
+      },
+    })
+    const node = recommendationNode(deps)
+    const result = await node(makeState({ playerId: 'guerreiro-1' }))
+    expect(result.lastRecommendedNpcs).toEqual(['Ragnar', 'Kira', 'Bruto'])
+  })
+})
+
 describe('recommendationNode — aggregatedContext', () => {
   it('includes affinity context in aggregatedContext', async () => {
     const docs = [makeDoc('Aaliyah', 0.9)]

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { buildApp } from './helpers/buildApp.js'
+import { buildApp, TEST_JWT_SECRET } from './helpers/buildApp.js'
 import { NotFoundError, UnauthorizedError } from '../../src/core/domain/errors/AppError.js'
+import { JwtTokenService } from '../../src/infrastructure/auth/JwtTokenService.js'
 import type { FastifyInstance } from 'fastify'
 
 const VALID_CHALLENGE_ID = '550e8400-e29b-41d4-a716-446655440000'
@@ -29,21 +30,26 @@ const validRegisterPayload = {
 
 describe('POST /api/v1/auth/players/register', () => {
   let app: FastifyInstance
-
-  beforeEach(async () => {
-    app = (await buildApp({
-      registerPlayerUseCase: { execute: vi.fn().mockResolvedValue({ player: mockPlayer }) },
-    })).app
-  })
+  const realTokenService = new JwtTokenService(TEST_JWT_SECRET, '1h')
 
   afterEach(async () => {
     await app?.close()
   })
 
-  it('returns 201 with player data on success', async () => {
+  it('returns 201 with player data when called with valid DM token', async () => {
+    const dmToken = await realTokenService.sign({ sub: 'dm', name: 'DM', role: 'DM' })
+    app = (await buildApp({
+      registerPlayerUseCase: { execute: vi.fn().mockResolvedValue({ player: mockPlayer }) },
+      tokenService: {
+        sign: vi.fn(),
+        verify: vi.fn().mockImplementation((t: string) => realTokenService.verify(t)),
+      },
+    })).app
+
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/players/register',
+      headers: { authorization: `Bearer ${dmToken}` },
       payload: validRegisterPayload,
     })
     expect(res.statusCode).toBe(201)
@@ -54,19 +60,65 @@ describe('POST /api/v1/auth/players/register', () => {
     expect(body.race).toBe('Elfa')
   })
 
-  it('returns 400 on missing required fields', async () => {
+  it('returns 401 when no auth token is provided', async () => {
+    app = (await buildApp()).app
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/players/register',
+      payload: validRegisterPayload,
+    })
+    expect(res.statusCode).toBe(401)
+  })
+
+  it('returns 403 when token has PLAYER role', async () => {
+    const playerToken = await realTokenService.sign({ sub: 'p1', name: 'Lyriel', role: 'PLAYER' })
+    app = (await buildApp({
+      tokenService: {
+        sign: vi.fn(),
+        verify: vi.fn().mockImplementation((t: string) => realTokenService.verify(t)),
+      },
+    })).app
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/players/register',
+      headers: { authorization: `Bearer ${playerToken}` },
+      payload: validRegisterPayload,
+    })
+    expect(res.statusCode).toBe(403)
+  })
+
+  it('returns 400 on missing required fields (checked before auth call)', async () => {
+    const dmToken = await realTokenService.sign({ sub: 'dm', name: 'DM', role: 'DM' })
+    app = (await buildApp({
+      tokenService: {
+        sign: vi.fn(),
+        verify: vi.fn().mockImplementation((t: string) => realTokenService.verify(t)),
+      },
+    })).app
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/players/register',
+      headers: { authorization: `Bearer ${dmToken}` },
       payload: { name: 'Lyriel' },
     })
     expect(res.statusCode).toBe(400)
   })
 
   it('returns 400 when background is too short (< 10 chars)', async () => {
+    const dmToken = await realTokenService.sign({ sub: 'dm', name: 'DM', role: 'DM' })
+    app = (await buildApp({
+      tokenService: {
+        sign: vi.fn(),
+        verify: vi.fn().mockImplementation((t: string) => realTokenService.verify(t)),
+      },
+    })).app
+
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/players/register',
+      headers: { authorization: `Bearer ${dmToken}` },
       payload: { ...validRegisterPayload, background: 'curto' },
     })
     expect(res.statusCode).toBe(400)

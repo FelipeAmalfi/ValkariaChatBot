@@ -78,3 +78,22 @@ test.describe('Player journey — sending a message', () => {
     await expect(page.getByText('Teste via Enter')).toBeVisible()
   })
 })
+
+test.describe('Player journey — identity challenge (requires live API + seed data)', () => {
+  test.skip(!!process.env.CI, 'requires live API with player "Lyriel" seeded')
+
+  test('player identifies and receives a challenge question from the oracle', async ({ page }) => {
+    await page.goto('/chat')
+    const input = page.getByLabel('Mensagem para o Oráculo')
+    await input.fill('Sou a Lyriel')
+    await input.press('Enter')
+
+    await expect(page.getByText('Sou a Lyriel')).toBeVisible()
+    const msgList = page.getByRole('list', { name: /Histórico de mensagens/i })
+    await expect(msgList).toBeVisible()
+    // loading dots resolve into real content
+    await expect(page.locator('[role="listitem"]').nth(1)).not.toContainText('__loading__', {
+      timeout: 15_000,
+    })
+  })
+})
