@@ -53,6 +53,22 @@ docker compose -f infrastructure/docker/docker-compose.yml up -d
 pnpm dev          # API (porta 3001) + Web (porta 3000) em paralelo
 ```
 
+## LangGraph — Dev Local
+
+Testa o grafo em isolamento (sem servidor HTTP), conectando diretamente à infraestrutura Docker local.
+
+**Pré-requisitos:** Docker rodando e `.env` preenchido com `OPENROUTER_API_KEY`.
+
+```bash
+# 1. Suba a infra Docker (se ainda não estiver rodando)
+docker compose -f infrastructure/docker/docker-compose.yml up -d
+
+# 2. Rode o REPL interativo
+pnpm --filter @valkaria/api graph:dev
+```
+
+O runner abre um prompt de chat no terminal com `thread_id` fixo (`dev-session-001`). Digite mensagens e veja as respostas do grafo. Use `/exit` para sair.
+
 ## Testes
 
 ```bash
@@ -76,7 +92,7 @@ src/
   shared/         config/env.ts — Zod env validation
 ```
 
-O grafo LangGraph fica em `src/infrastructure/ai/graph/`.
+O grafo LangGraph fica em `src/interface/graph/`.
 
 ## Deploy
 

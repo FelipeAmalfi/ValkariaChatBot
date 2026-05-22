@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "clean": "rimraf dist",
-    "ingest": "tsx src/infrastructure/ingestion/runIngestion.ts"
+    "ingest": "tsx src/infrastructure/ingestion/runIngestion.ts",
+    "graph:dev": "tsx --env-file=../../.env src/dev/testGraph.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",
