@@ -2,9 +2,7 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   transpilePackages: ['@valkaria/shared'],
-  experimental: {
-    typedRoutes: true,
-  },
+  typedRoutes: true,
   productionBrowserSourceMaps: false,
 }
 

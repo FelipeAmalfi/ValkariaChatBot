@@ -66,7 +66,7 @@ export function ChatWindow() {
   const dismissError = useCallback(() => setErrorText(null), [])
 
   const fetchNpcCards = useCallback(
-    async (names: string[], currentPlayerName: string | null): Promise<NpcCardData[]> => {
+    async (names: string[], _currentPlayerName: string | null): Promise<NpcCardData[]> => {
       const cards: NpcCardData[] = []
       for (const name of names) {
         try {
@@ -158,7 +158,7 @@ export function ChatWindow() {
 
   const handleSuggestion = useCallback(
     (suggestion: string) => {
-      sendMessage(suggestion)
+      void sendMessage(suggestion)
     },
     [sendMessage],
   )

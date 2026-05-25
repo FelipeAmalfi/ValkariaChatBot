@@ -287,7 +287,7 @@ function PlayerList() {
   const handlePlayerCreated = useCallback(
     (_player: PlayerProfile) => {
       setShowForm(false)
-      refetch()
+      void refetch()
     },
     [refetch],
   )
