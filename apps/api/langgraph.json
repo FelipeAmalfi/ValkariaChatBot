@@ -1,0 +1,7 @@
+{
+  "node_version": "20",
+  "graphs": {
+    "valkaria": "./src/dev/graphEntrypoint.ts:graph"
+  },
+  "env": "../../.env"
+}

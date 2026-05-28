@@ -13,13 +13,15 @@
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
+    "@langchain/langgraph": "^1.3.2",
     "@radix-ui/react-slot": "^1.2.3",
-    "@valkaria/shared": "workspace:*",
+    "@valkaria/shared": "*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "graphql": "^16.11.0",
     "lucide-react": "^0.511.0",
-    "next": "^15.3.2",
+    "mercurius": "16.9.0",
+    "next": "^16.2.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tailwind-merge": "^3.3.0"

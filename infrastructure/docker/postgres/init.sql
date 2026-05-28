@@ -175,7 +175,7 @@ ALTER TABLE characters ADD COLUMN IF NOT EXISTS benefits_cordial TEXT;
 ALTER TABLE characters ADD COLUMN IF NOT EXISTS benefits_loyal TEXT;
 ALTER TABLE characters ADD COLUMN IF NOT EXISTS benefits_intimate TEXT;
 ALTER TABLE characters ADD COLUMN IF NOT EXISTS last_demand TEXT;
-ALTER TABLE characters ADD COLUMN IF NOT EXISTS location_name VARCHAR(255);  -- string reference além de FK
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS location_name TEXT;  -- string reference além de FK
 
 -- ============================================================
 -- NPC Affinity — tracks affinity level between player and NPC

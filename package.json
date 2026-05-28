@@ -8,11 +8,22 @@
   ],
   "scripts": {
     "dev": "turbo dev",
+    "dev:api": "npm run dev -w @valkaria/api",
+    "dev:web": "npm run dev -w @valkaria/web",
     "build": "turbo build",
     "lint": "turbo lint",
-    "test": "turbo test",
-    "test:e2e": "npm run test:e2e -w @valkaria/web",
     "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "test:api": "npm test -w @valkaria/api",
+    "test:watch": "npm run test:watch -w @valkaria/api",
+    "test:coverage": "npm run test:coverage -w @valkaria/api",
+    "test:e2e": "npm run test:e2e -w @valkaria/web",
+    "ingest": "npm run ingest -w @valkaria/api",
+    "graph:dev": "npm run graph:dev -w @valkaria/api",
+    "langgraph:serve": "npm run langgraph:serve -w @valkaria/api",
+    "infra:up": "docker compose -f infrastructure/docker/docker-compose.yml up -d --wait",
+    "infra:down": "docker compose -f infrastructure/docker/docker-compose.yml down",
+    "infra:reset": "docker compose -f infrastructure/docker/docker-compose.yml down --volumes",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore",
     "clean": "turbo clean && rimraf node_modules"
@@ -30,5 +41,6 @@
   },
   "engines": {
     "node": ">=20.0.0"
-  }
+  },
+  "packageManager": "npm@11.12.1"
 }
