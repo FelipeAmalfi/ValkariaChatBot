@@ -14,15 +14,15 @@ Chatbot de RPG imersivo para o universo de **Valkária**. NPCs inteligentes com 
 | Banco de grafo | Neo4j 5 | Relacionamentos entre NPCs, facções e localizações |
 | Cache / Sessão | Redis 7 | Sessão por thread_id, desafios de auth |
 | Frontend | Next.js 15 + Apollo Client | App Router, React 19, Tailwind v4 |
-| Monorepo | pnpm workspaces + Turborepo | Build paralelo com cache incremental |
+| Monorepo | npm workspaces + Turborepo | Build paralelo com cache incremental |
 
 ## Início Rápido
 
-**Pré-requisitos:** Node 20+, pnpm 9+, Docker
+**Pré-requisitos:** Node 20+, Docker
 
 ```bash
 # 1. Instalar dependências
-pnpm install
+npm install
 
 # 2. Configurar variáveis de ambiente
 cp .env.example .env
@@ -32,10 +32,10 @@ cp .env.example .env
 docker compose -f infrastructure/docker/docker-compose.yml up -d
 
 # 4. Ingerir dados (NPCs e localizações dos CSVs)
-pnpm --filter @valkaria/api ingest
+npm run ingest -w @valkaria/api
 
 # 5. Iniciar desenvolvimento
-pnpm dev
+npm run dev
 ```
 
 URLs disponíveis após o passo 5:
@@ -57,28 +57,66 @@ URLs disponíveis após o passo 5:
 
 Ver `.env.example` para todas as variáveis (banco, modelos, thresholds, etc).
 
-## Scripts
+## Rodando a Aplicação
+
+### Tudo junto (recomendado para dev)
 
 ```bash
-pnpm dev                                    # API + Web em paralelo
-pnpm build                                  # Build de produção (shared → api → web)
-pnpm test                                   # Vitest em todos os workspaces
-pnpm typecheck                              # tsc --noEmit em todos os workspaces
-pnpm lint                                   # ESLint
-pnpm --filter @valkaria/api ingest          # Pipeline CSV → PostgreSQL → Neo4j
-pnpm --filter @valkaria/api graph:dev       # REPL interativo do LangGraph
+npm run dev          # API (porta 3001) + Web (porta 3000) em paralelo
 ```
 
-## Desenvolvimento do Grafo LangGraph
-
-Para testar o grafo em isolamento (sem servidor HTTP):
+### Somente o Backend (API)
 
 ```bash
-# Requer: Docker rodando + .env preenchido
-pnpm --filter @valkaria/api graph:dev
+npm run dev -w @valkaria/api
 ```
 
-Abre um prompt de chat no terminal com `thread_id` fixo (`dev-session-001`). Use `/exit` para sair.
+### Somente o Frontend (Web)
+
+```bash
+npm run dev -w @valkaria/web
+```
+
+## Testes
+
+```bash
+# Rodar todos os testes
+npm test
+
+# Somente testes da API (Vitest)
+npm test -w @valkaria/api
+
+# Testes com watch (re-executa ao salvar)
+npm run test:watch -w @valkaria/api
+
+# Cobertura de código da API
+npm run test:coverage -w @valkaria/api
+
+# Testes E2E do frontend (Playwright)
+npm run test:e2e -w @valkaria/web
+
+# Verificação de tipos (todos os workspaces)
+npm run typecheck
+```
+
+## LangGraph — REPL Interativo
+
+Testa o grafo de NPCs em isolamento, sem subir o servidor HTTP:
+
+```bash
+# Requer: Docker rodando + .env preenchido com OPENROUTER_API_KEY
+npm run graph:dev -w @valkaria/api
+```
+
+Abre um prompt de chat no terminal com `thread_id` fixo (`dev-session-001`). Digite mensagens normalmente e veja as respostas dos NPCs. Use `/exit` para encerrar.
+
+## Outros Scripts
+
+```bash
+npm run build                                  # Build de produção (shared → api → web)
+npm run lint                                   # ESLint
+npm run ingest -w @valkaria/api               # Pipeline CSV → PostgreSQL → Neo4j
+```
 
 ## Estrutura do Monorepo
 
@@ -119,12 +157,12 @@ docs/
 
 **Build command (Render):**
 ```bash
-pnpm install --frozen-lockfile && pnpm --filter @valkaria/shared build && pnpm --filter @valkaria/api build
+npm ci && npm run build -w @valkaria/shared && npm run build -w @valkaria/api
 ```
 
 **Vercel — configurações do dashboard:**
 - Root Directory: `apps/web`
-- Build Command: `cd ../.. && pnpm --filter @valkaria/shared build && pnpm --filter @valkaria/web build`
+- Build Command: `cd ../.. && npm run build -w @valkaria/shared && npm run build -w @valkaria/web`
 
 ## Documentação
 

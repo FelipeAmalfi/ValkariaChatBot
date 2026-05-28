@@ -6,7 +6,7 @@ echo "🏰 ValkariaChatBot — Setup"
 echo "=========================="
 
 # Check required tools
-command -v pnpm >/dev/null 2>&1 || { echo "❌ pnpm not found. Install: npm install -g pnpm"; exit 1; }
+command -v npm >/dev/null 2>&1 || { echo "❌ npm not found. Install Node.js 20+: https://nodejs.org"; exit 1; }
 command -v docker >/dev/null 2>&1 || { echo "❌ docker not found. Install Docker Desktop."; exit 1; }
 command -v docker compose >/dev/null 2>&1 || { echo "❌ docker compose not found."; exit 1; }
 
@@ -20,7 +20,7 @@ fi
 
 # Install dependencies
 echo "📦 Installing dependencies..."
-pnpm install
+npm install
 
 # Start infrastructure
 echo "🐳 Starting Docker services..."
@@ -37,9 +37,9 @@ echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "Next steps:"
-echo "  pnpm dev          — start all apps"
-echo "  pnpm --filter @valkaria/api dev  — start API only"
-echo "  pnpm --filter @valkaria/web dev  — start Web only"
+echo "  npm run dev                              — start all apps"
+echo "  npm run dev -w @valkaria/api             — start API only"
+echo "  npm run dev -w @valkaria/web             — start Web only"
 echo ""
 echo "Services:"
 echo "  PostgreSQL: localhost:5432"

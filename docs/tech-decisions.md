@@ -4,17 +4,17 @@ Cada tecnologia foi escolhida com um propósito específico. Este documento regi
 
 ---
 
-## Monorepo: pnpm workspaces + Turborepo
+## Monorepo: npm workspaces + Turborepo
 
-**Escolhido:** pnpm 9 + Turborepo 2  
-**Considerado:** npm workspaces, Yarn Berry, Nx
+**Escolhido:** npm workspaces + Turborepo 2  
+**Considerado:** pnpm workspaces, Yarn Berry, Nx
 
 **Motivo:**
-- pnpm tem o melhor gerenciamento de dependências entre os gerenciadores modernos — links simbólicos com `node_modules` não-flat evitam hoisting acidental e conflitos de versão entre workspaces
+- npm workspaces está embutido no Node.js/npm sem instalação adicional — dependência zero de ferramentas externas
 - Turborepo oferece cache de build incremental sem configuração complexa (apenas `turbo.json`) — builds paralelos com dependências declaradas
 - Alternativas como Nx têm maior curva de configuração para um projeto de escopo similar
 
-**Impacto:** `pnpm dev` inicia API e Web em paralelo com um único comando; `pnpm build` garante que `@valkaria/shared` seja compilado antes dos apps que dependem dele.
+**Impacto:** `npm run dev` inicia API e Web em paralelo com um único comando; `npm run build` garante que `@valkaria/shared` seja compilado antes dos apps que dependem dele.
 
 ---
 

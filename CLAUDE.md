@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-Monorepo pnpm + Turbo. RPG chatbot com NPCs inteligentes via LangGraph.
+Monorepo npm workspaces + Turbo. RPG chatbot com NPCs inteligentes via LangGraph.
 
 ```
 apps/
@@ -18,12 +18,12 @@ infrastructure/
 
 ### Pré-requisitos
 
-- Node 20+, pnpm 9+, Docker
+- Node 20+, Docker
 
 ### 1. Dependências
 
 ```bash
-pnpm install
+npm install
 ```
 
 ### 2. Variáveis de ambiente
@@ -50,7 +50,7 @@ docker compose -f infrastructure/docker/docker-compose.yml up -d
 ### 4. Rodar em dev
 
 ```bash
-pnpm dev          # API (porta 3001) + Web (porta 3000) em paralelo
+npm run dev          # API (porta 3001) + Web (porta 3000) em paralelo
 ```
 
 ## LangGraph — Dev Local
@@ -64,7 +64,7 @@ Testa o grafo em isolamento (sem servidor HTTP), conectando diretamente à infra
 docker compose -f infrastructure/docker/docker-compose.yml up -d
 
 # 2. Rode o REPL interativo
-pnpm --filter @valkaria/api graph:dev
+npm run graph:dev -w @valkaria/api
 ```
 
 O runner abre um prompt de chat no terminal com `thread_id` fixo (`dev-session-001`). Digite mensagens e veja as respostas do grafo. Use `/exit` para sair.
@@ -72,10 +72,12 @@ O runner abre um prompt de chat no terminal com `thread_id` fixo (`dev-session-0
 ## Testes
 
 ```bash
-pnpm test          # Vitest — todos os workspaces
-pnpm typecheck     # TypeScript — todos os workspaces
-pnpm lint          # ESLint
-pnpm build         # Build de produção (valida tudo)
+npm test                              # Vitest — todos os workspaces
+npm run typecheck                     # TypeScript — todos os workspaces
+npm run lint                          # ESLint
+npm run build                         # Build de produção (valida tudo)
+npm test -w @valkaria/api             # Somente testes da API
+npm run test:e2e -w @valkaria/web     # Testes E2E (Playwright)
 ```
 
 ## Arquitetura da API
@@ -111,7 +113,7 @@ Veja `.env.production.example` — copie cada bloco para o dashboard do serviço
 ### Render — comando de build
 
 ```
-pnpm install --frozen-lockfile && pnpm --filter @valkaria/shared build && pnpm --filter @valkaria/api build
+npm ci && npm run build -w @valkaria/shared && npm run build -w @valkaria/api
 ```
 
 Render injeta `PORT` automaticamente; o servidor lê via `API_PORT ?? PORT`.
@@ -121,7 +123,7 @@ Render injeta `PORT` automaticamente; o servidor lê via `API_PORT ?? PORT`.
 Configure no dashboard:
 - **Root Directory**: `apps/web`
 - **Framework**: Next.js
-- **Build Command**: `cd ../.. && pnpm --filter @valkaria/shared build && pnpm --filter @valkaria/web build`
+- **Build Command**: `cd ../.. && npm run build -w @valkaria/shared && npm run build -w @valkaria/web`
 
 ## Decisões Relevantes
 

@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-Monorepo gerenciado com **pnpm workspaces** e **Turborepo**. Três workspaces com fronteiras bem definidas: dois apps independentes e um pacote de tipos compartilhados.
+Monorepo gerenciado com **npm workspaces** e **Turborepo**. Três workspaces com fronteiras bem definidas: dois apps independentes e um pacote de tipos compartilhados.
 
 ```mermaid
 graph TD
@@ -65,7 +65,6 @@ ValkariaChatBot/
 ├── npcs.csv                    Dados fonte dos NPCs
 ├── locations.csv               Dados fonte das localizações
 ├── turbo.json                  Pipeline Turborepo
-├── pnpm-workspace.yaml
 └── CLAUDE.md                   Guia para o agente Claude Code
 ```
 
@@ -92,10 +91,10 @@ Scripts raiz disponíveis:
 
 | Comando | O que faz |
 |---------|-----------|
-| `pnpm dev` | Inicia API (3001) e Web (3000) em paralelo |
-| `pnpm build` | Build de produção (shared primeiro, depois apps) |
-| `pnpm test` | Vitest em todos os workspaces |
-| `pnpm typecheck` | `tsc --noEmit` em todos os workspaces |
-| `pnpm lint` | ESLint em todos os workspaces |
-| `pnpm --filter @valkaria/api ingest` | Executa pipeline de ingestão de dados |
-| `pnpm --filter @valkaria/api graph:dev` | REPL interativo do LangGraph |
+| `npm run dev` | Inicia API (3001) e Web (3000) em paralelo |
+| `npm run build` | Build de produção (shared primeiro, depois apps) |
+| `npm test` | Vitest em todos os workspaces |
+| `npm run typecheck` | `tsc --noEmit` em todos os workspaces |
+| `npm run lint` | ESLint em todos os workspaces |
+| `npm run ingest -w @valkaria/api` | Executa pipeline de ingestão de dados |
+| `npm run graph:dev -w @valkaria/api` | REPL interativo do LangGraph |

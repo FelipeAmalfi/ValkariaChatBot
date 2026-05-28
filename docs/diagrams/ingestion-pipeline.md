@@ -138,7 +138,7 @@ MERGE (n)-[:LIKES]->(i)
 docker compose -f infrastructure/docker/docker-compose.yml up -d
 
 # 2. Executar pipeline completo
-pnpm --filter @valkaria/api ingest
+npm run ingest -w @valkaria/api
 ```
 
 O script `runIngestion.ts` executa as etapas na ordem correta e exibe progresso no console.

@@ -1,7 +1,7 @@
 {
   "framework": "nextjs",
-  "buildCommand": "cd ../.. && pnpm --filter @valkaria/shared build && pnpm --filter @valkaria/web build",
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && npm run build -w @valkaria/shared && npm run build -w @valkaria/web",
+  "installCommand": "cd ../.. && npm ci",
   "outputDirectory": ".next",
   "env": {
     "NEXT_PUBLIC_API_URL": "@next_public_api_url",

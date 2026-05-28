@@ -5,7 +5,7 @@ services:
     region: oregon
     plan: free
     rootDir: .
-    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @valkaria/shared build && pnpm --filter @valkaria/api build
+    buildCommand: npm ci && npm run build -w @valkaria/shared && npm run build -w @valkaria/api
     startCommand: node apps/api/dist/main.js
     healthCheckPath: /health
     autoDeploy: false  # Controlled by GitHub Actions deploy hook

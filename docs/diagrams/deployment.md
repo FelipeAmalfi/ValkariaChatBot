@@ -56,9 +56,9 @@ graph TD
 ### Render (API)
 
 ```bash
-pnpm install --frozen-lockfile && \
-pnpm --filter @valkaria/shared build && \
-pnpm --filter @valkaria/api build
+npm ci && \
+npm run build -w @valkaria/shared && \
+npm run build -w @valkaria/api
 ```
 
 O Render injeta `PORT` automaticamente; a API lê via `API_PORT ?? PORT`.
@@ -68,7 +68,7 @@ O Render injeta `PORT` automaticamente; a API lê via `API_PORT ?? PORT`.
 Configurações no dashboard:
 - **Root Directory**: `apps/web`
 - **Framework**: Next.js (auto-detectado)
-- **Build Command**: `cd ../.. && pnpm --filter @valkaria/shared build && pnpm --filter @valkaria/web build`
+- **Build Command**: `cd ../.. && npm run build -w @valkaria/shared && npm run build -w @valkaria/web`
 
 ## Variáveis de Ambiente por Serviço
 
@@ -137,7 +137,7 @@ graph LR
 docker compose -f infrastructure/docker/docker-compose.yml up -d
 
 # Rodar apps
-pnpm dev
+npm run dev
 ```
 
 URLs de desenvolvimento:
